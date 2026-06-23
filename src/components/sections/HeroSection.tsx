@@ -7,7 +7,7 @@ import type { PageKey } from '../../routes';
 type Props = { onNavigate: (page: PageKey) => void };
 
 const FEATURE_PILLS = [
-  'Research Journal',
+  'Schools', // Changed from Research Journal
   'Interactive Exhibitions',
   'Tech Competitions',
   'Innovation Showcase',

@@ -20,9 +20,9 @@ export const ceremonies = {
 };
 
 export const registration = {
-  orientationDeadline: 'Thursday, 16 July',
-  windowOpens: '20 July 2025',
-  windowCloses: '24 July 2025',
+  orientationDeadline: 'Thursday, 17 July',
+  windowOpens: '26 July 2026', // Updated here
+  windowCloses: '20 July 2025',
 };
 
 export const host = {

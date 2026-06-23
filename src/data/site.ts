@@ -23,7 +23,7 @@ export const about = {
   tagline:
     'The Science & Technology Confluence bringing together brilliant minds to explore the frontiers of innovation.',
   agenda:
-    'A two-day confluence offering a unique platform for students to present original ideas, engage with emerging scientific trends, and interact directly with eminent minds from academia, industry, and research. Through a curated series of frontiers, Quantum Qubit cultivates future-ready thinkers equipped to thrive in an ever-evolving world.',
+    'A one-day confluence offering a unique platform for students to present original ideas, engage with emerging scientific trends, and interact directly with eminent minds from academia, industry, and research. Through a curated series of frontiers, Quantum Qubit cultivates future-ready thinkers equipped to thrive in an ever-evolving world.',
   pillars: [
     {
       title: 'Cutting-Edge Science',
@@ -35,7 +35,7 @@ export const about = {
     },
     {
       title: 'Scientific Innovation',
-      body: 'From working prototypes to live debate to combat robotics — every frontier asks teams to build something defendable from first principles.',
+      body: 'From working prototypes to live debates — every frontier asks teams to build something defendable from first principles.',
     },
   ],
 } as const;

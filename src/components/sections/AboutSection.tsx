@@ -6,7 +6,7 @@ import { SectionShell, SectionHeading } from './SectionShell';
 const STATS = [
   { value: events.length.toString().padStart(2, '0'), label: 'Frontiers' },
   { value: '30+', label: 'Schools' },
-  { value: '02',  label: 'Days' },
+  { value: '01',  label: 'Day' },
   { value: '∞',   label: 'Innovation' },
 ];
 
@@ -24,8 +24,8 @@ export function AboutSection() {
         <SectionHeading
           index="01"
           badge="About Quantum Qubit"
-          line1="Two days."
-          line2="Nine frontiers, one confluence."
+          line1="One day."
+          line2="Eight frontiers, one confluence."
         />
         <motion.p
           {...reveal}

@@ -16,7 +16,7 @@ export function FrontiersPreview({ onNavigate }: Props) {
 
   return (
     <SectionShell id="frontiers-preview" align="left">
-      <SectionHeading index="02" badge="The Frontiers" line1="Nine frontiers." line2="Tap any to open the brief." />
+      <SectionHeading index="02" badge="The Frontiers" line1="Eight frontiers." line2="Tap any to open the brief." />
 
       <motion.div
         initial="initial"

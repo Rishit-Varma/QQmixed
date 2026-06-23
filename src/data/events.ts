@@ -334,51 +334,6 @@ export const events: EventEntry[] = [
     ],
     teacherInCharges: ['Mr S K Ray', 'Mrs M Mukherjee', 'Mrs S Roy'],
   },
-
-  {
-    slug: 'robowarz-skirmish',
-    index: '09',
-    name: 'Robowarz Skirmish',
-    tagline: 'Three to six kilos. One bot left standing.',
-    summary:
-      'A combat-robotics arena where ingenuity meets intensity and only the boldest machines survive. Every gear grinds with purpose, every move is a calculated strike, and every second counts. Strict weight and dimension classes, onboard power, and a mandatory kill switch keep it safe.',
-    classes: '9 – 12',
-    participants: '2 per team',
-    venue: '4th Floor · Junior / Senior Wing',
-    rounds: [
-      {
-        name: 'Bracket Combat',
-        description:
-          'Bots fight inside a 10 × 10 ft central zone with a 10–12 ft buffer (the No Man’s Arena). A round is won by one of three conditions.',
-        bullets: [
-          'Complete Immobilisation — opponent moves < 1 inch for 30 continuous seconds',
-          'Arena Ejection — opponent pushed out of the central 10 × 10 ft zone',
-          'No Man’s Arena Violation — > 10 continuous seconds in the 10–12 ft buffer',
-        ],
-      },
-      {
-        name: 'Timeout Judgement',
-        description:
-          'If no clear winner emerges in the allotted time, the round is decided on aggression & control, defence & strategy, and damage inflicted (including attempts to damage).',
-      },
-    ],
-    rules: [
-      'Weight: 3 kg – 6 kg (excluding external controllers). Max dimensions 40 × 40 × 40 cm before activation.',
-      'Onboard batteries only — no external power during matches. Wired or wireless allowed.',
-      'Only self-designed or custom-built bots; store-bought models or toys are instantly disqualified.',
-      'Wireless bots must use dedicated, non-interfering frequencies — signal jamming means disqualification.',
-      'A mandatory Emergency Kill Switch is required; allowed weapons are lifters, flippers, and wedges only, with strictly limited power.',
-      'All bots undergo a mandatory weapon, wiring, and kill-switch safety inspection before the arena. Teams bring their own remotes, chargers, tools, and spares.',
-    ],
-    prohibited: [
-      'Fire-producing devices',
-      'Liquid-based systems (water or chemicals)',
-      'Explosives or combustibles',
-      'Untethered projectiles',
-      'Lasers, or anything that can harm humans',
-    ],
-    teacherInCharges: [],
-  },
 ];
 
 export const eventsBySlug: Record<string, EventEntry> =
