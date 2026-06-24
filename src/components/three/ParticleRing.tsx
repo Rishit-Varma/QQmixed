@@ -6,32 +6,11 @@ import { useSectionBeat } from '../../hooks/useSectionBeat';
 
 /**
  * Aurora particle sphere + torus ring.
- *
- * This is a faithful reconstruction of the Borealis hero field the user
- * is matching, ported to original GLSL. The decisive details that make
- * the sphere read as a dark hollow shell with a bright silhouette rim
- * (rather than a bright filled ball):
- *
- * 1. The geometry is a THIN SHELL — points sit only on radius
- * 1.95 ± 0.0175. There are no interior particles.
- * 2. AdditiveBlending + depthWrite:false + toneMapped:false: a viewing
- * ray grazing the silhouette passes through a long tangent chord of
- * shell (many overlapping points → bright rim); a ray through the
- * centre crosses only the thin front + back caps (dim navy core).
- * 3. NO postprocessing bloom. The fragment shader's bright core
- * (+0.45 in the central 18% of each sprite) plus additive stacking
- * is the entire glow budget.
- *
- * Scroll drives uHeat / uTint / uExtraRotation / uRingFlip via a ref
- * (useScrollProgress) — never React state, so nothing re-renders on
- * scroll. prefers-reduced-motion freezes the time-based animation.
+ * Restricted purely to a high-fidelity Cyan and Violet color cycle.
  */
 
 const IS_MOBILE = typeof window !== 'undefined' && window.innerWidth < 768;
 
-// ====== EXACT Borealis constants ======
-// Density tuned so points read as fine, separated specks (not a congested,
-// blobby ball). Fewer points + smaller gl_PointSize = clean + smoother FPS.
 const SPHERE_COUNT = IS_MOBILE ? 18000 : 36000;
 const SPHERE_R     = 1.95;
 const SPHERE_THICK = 0.035;
@@ -40,15 +19,10 @@ const RING_COUNT   = IS_MOBILE ? 5500 : 10000;
 const RING_MAJOR   = 2.65;
 const RING_MINOR   = 0.075;
 
-const INTRO_DURATION = 2.6; // seconds
-
-// Ring choreography. The ring rotates MONOTONICALLY with scroll — one
-// continuous half-turn (π) per section — so it completes a full flip
-// each section and lands perfectly face-on (aligned) at every snap,
-// rather than wobbling back. Matches the Borealis tumble.
+const INTRO_DURATION = 2.6;
 const RING_TURN_PER_SECTION = Math.PI;
 
-// ====== Shaders (verbatim ported GLSL) ======
+// ====== Shaders updated for Cyan + Violet only ======
 
 const sphereVertex = /* glsl */ `
   attribute vec3 seed;
@@ -70,9 +44,10 @@ const sphereVertex = /* glsl */ `
   vec3 rotateY(vec3 p, float a){ float c=cos(a), s=sin(a); return vec3(c*p.x+s*p.z, p.y, -s*p.x+c*p.z); }
   vec3 rotateX(vec3 p, float a){ float c=cos(a), s=sin(a); return vec3(p.x, c*p.y-s*p.z, s*p.y+c*p.z); }
 
-  const vec3 AURORA_BLUE  = vec3(0.04, 0.18, 0.78);
-  const vec3 AURORA_CYAN  = vec3(0.72, 1.00, 1.00);
-  const vec3 AURORA_GREEN = vec3(0.22, 0.95, 0.50);
+  // EXACT SHADER COLOR TARGETS
+  const vec3 AURORA_CYAN  = vec3(0.25, 0.85, 1.00);
+  const vec3 AURORA_VIOLET = vec3(0.62, 0.12, 0.94);
+  const vec3 SPACE_INDIGO = vec3(0.08, 0.05, 0.45);
 
   void main(){
     float introEase = 1.0 - pow(1.0 - clamp(uIntroT,0.0,1.0), 3.0);
@@ -101,47 +76,23 @@ const sphereVertex = /* glsl */ `
       shellGlow = (bulge*2.0 - dent*0.45) * uMouseInfluence;
     }
 
-    float n1 = sin(pos.x*1.4 + pos.y*0.7 + uTime*0.95)*0.5 + 0.5;
-    float n2 = sin(pos.y*1.1 - pos.z*1.3 + uTime*0.78 + 1.7)*0.5 + 0.5;
-    float swirl = (n1+n2)*0.5;
-    swirl += (seed.x - 0.5) * 0.18;
-    swirl = clamp(swirl, 0.0, 1.0);
+    float n1 = sin(pos.x*1.4 + pos.y*0.7 + uTime*0.5)*0.5 + 0.5;
+    float n2 = sin(pos.y*1.1 - pos.z*1.3 + uTime*0.4 + 1.7)*0.5 + 0.5;
+    float mixFactor = (n1+n2)*0.5;
+    mixFactor += (seed.x - 0.5) * 0.15;
+    mixFactor = clamp(mixFactor, 0.0, 1.0);
 
-    vec3 col = mix(AURORA_BLUE, AURORA_GREEN, swirl);
-    float cyanBoost = 1.0 - abs(swirl - 0.5)*2.0;
-    col = mix(col, AURORA_CYAN, cyanBoost*0.45);
+    // Dynamic Cyan to Violet wave
+    vec3 col = mix(AURORA_CYAN, AURORA_VIOLET, mixFactor);
+    
+    // Core contrast deep tone
+    float highlightBoost = 1.0 - abs(mixFactor - 0.5)*2.0;
+    col = mix(col, SPACE_INDIGO, highlightBoost*0.20);
+    
     float curtain = sin(pos.y*0.9 + uTime*0.6 + seed.y*6.28)*0.5 + 0.5;
-    col *= 0.45 + curtain*0.95;
-    col = mix(col, vec3(0.85,1.00,1.00), max(shellGlow,0.0)*0.80);
-    col = mix(col, vec3(0.04,0.10,0.15), max(-shellGlow,0.0)*0.55);
+    col *= 0.55 + curtain*0.85;
+    col = mix(col, vec3(0.90,0.95,1.00), max(shellGlow,0.0)*0.60);
 
-    vec3 EMBER_DEEP   = vec3(0.32,0.04,0.02);
-    vec3 EMBER_BRIGHT = vec3(1.00,0.22,0.10);
-    vec3 IGNITION     = vec3(1.00,0.55,0.10);
-    vec3 ORANGE_DEEP   = vec3(0.55,0.18,0.02);
-    vec3 ORANGE_BRIGHT = vec3(1.00,0.65,0.18);
-    vec3 GREEN_DEEP    = vec3(0.02,0.20,0.05);
-    vec3 GREEN_BRIGHT  = vec3(0.18,0.95,0.45);
-    vec3 VIOLET_DEEP   = vec3(0.25,0.05,0.50);
-    vec3 VIOLET_BRIGHT = vec3(0.85,0.30,1.00);
-    vec3 CYAN_DEEP     = vec3(0.02,0.18,0.50);
-    vec3 CYAN_BRIGHT   = vec3(0.40,0.92,1.00);
-    vec3 emberCol  = mix(EMBER_DEEP,EMBER_BRIGHT,swirl);
-    vec3 orangeCol = mix(ORANGE_DEEP,ORANGE_BRIGHT,swirl);
-    vec3 greenCol  = mix(GREEN_DEEP,GREEN_BRIGHT,swirl);
-    vec3 violetCol = mix(VIOLET_DEEP,VIOLET_BRIGHT,swirl);
-    vec3 cyanCol   = mix(CYAN_DEEP,CYAN_BRIGHT,swirl);
-    emberCol = mix(emberCol, orangeCol, clamp(uTint,0.0,1.0));
-    emberCol = mix(emberCol, greenCol,  clamp(uTint-1.0,0.0,1.0));
-    emberCol = mix(emberCol, violetCol, clamp(uTint-2.0,0.0,1.0));
-    emberCol = mix(emberCol, cyanCol,   clamp(uTint-3.0,0.0,1.0));
-    emberCol *= 0.45 + curtain*0.95;
-
-    float ignitionT = seed.z;
-    float h = smoothstep(ignitionT-0.10, ignitionT+0.10, uHeat);
-    float flashPulse = max(0.0, 1.0 - abs(h-0.5)*2.0);
-    vec3 sunCol = mix(emberCol, IGNITION, flashPulse*0.85);
-    col = mix(col, sunCol, h);
     vColor = col;
 
     float bulgeFactor = max(0.0, shellGlow);
@@ -159,7 +110,6 @@ const sphereVertex = /* glsl */ `
   }
 `;
 
-// Shared by sphere and ring.
 const sharedFragment = /* glsl */ `
   varying vec3  vColor;
   varying float vAlpha;
@@ -191,10 +141,9 @@ const ringVertex = /* glsl */ `
   varying vec3  vColor;
   varying float vAlpha;
 
-  const vec3 FAV_CYAN = vec3(0.34, 0.88, 1.00);
-  const vec3 FAV_BLUE = vec3(0.49, 0.66, 1.00);
-  const vec3 RING_EMBER  = vec3(1.00, 0.28, 0.08);
-  const vec3 RING_ORANGE = vec3(1.00, 0.70, 0.20);
+  const vec3 RING_CYAN   = vec3(0.35, 0.85, 1.00);
+  const vec3 RING_VIOLET = vec3(0.65, 0.15, 0.95);
+  const vec3 RING_WHITE  = vec3(0.95, 0.98, 1.00);
 
   vec3 rotateY(vec3 p, float a){ float c=cos(a),s=sin(a); return vec3(c*p.x+s*p.z, p.y, -s*p.x+c*p.z); }
   vec3 rotateX(vec3 p, float a){ float c=cos(a),s=sin(a); return vec3(p.x, c*p.y-s*p.z, s*p.y+c*p.z); }
@@ -218,29 +167,17 @@ const ringVertex = /* glsl */ `
     pos += outFromCenter * proximity * 0.18;
     pos.z += proximity * 0.06;
 
-    float gradient = sin(seed.x*6.28318 + uTime*0.4)*0.5 + 0.5;
-    vec3 col = mix(FAV_CYAN, FAV_BLUE, gradient);
-    float pulse = 0.65 + sin(seed.x*12.566 + uTime*0.7 + seed.z*3.0)*0.35;
-    col *= pulse;
-    col = mix(col, vec3(0.95,1.00,1.00), proximity*0.6);
-    col *= 1.0 + proximity*0.9;
+    // Fluid blending between Cyan and Violet down the chain
+    float gradient = sin(seed.x * 6.28318 + uTime * 0.5) * 0.5 + 0.5;
+    vec3 col = mix(RING_CYAN, RING_VIOLET, gradient);
+    
+    // Highlight intersection segments with bright white nodes
+    float midAcc = 1.0 - abs(gradient - 0.5) * 2.0;
+    col = mix(col, RING_WHITE, midAcc * 0.25);
 
-    vec3 ringHot = mix(RING_EMBER, RING_ORANGE, gradient) * pulse;
-    vec3 ringOrange = mix(vec3(0.70,0.28,0.04), vec3(1.00,0.72,0.22), gradient) * pulse;
-    vec3 ringGreen  = mix(vec3(0.04,0.30,0.10), vec3(0.25,1.00,0.50), gradient) * pulse;
-    vec3 ringViolet = mix(vec3(0.45,0.10,0.85), vec3(0.85,0.35,1.00), gradient) * pulse;
-    vec3 ringCyan   = mix(vec3(0.04,0.30,0.65), vec3(0.40,0.95,1.00), gradient) * pulse;
-    ringHot = mix(ringHot, ringOrange, clamp(uTint,0.0,1.0));
-    ringHot = mix(ringHot, ringGreen,  clamp(uTint-1.0,0.0,1.0));
-    ringHot = mix(ringHot, ringViolet, clamp(uTint-2.0,0.0,1.0));
-    ringHot = mix(ringHot, ringCyan,   clamp(uTint-3.0,0.0,1.0));
-    vec3 ringFlash = vec3(1.00, 0.55, 0.10);
-    float ringIgnitionT = seed.z;
-    float rh = smoothstep(ringIgnitionT-0.10, ringIgnitionT+0.10, uHeat);
-    float ringFlashPulse = max(0.0, 1.0 - abs(rh-0.5)*2.0);
-    vec3 ringSettled = mix(ringHot, ringFlash, ringFlashPulse*0.7);
-    ringSettled = mix(ringSettled, vec3(1.0,0.95,0.7), proximity*0.5);
-    col = mix(col, ringSettled, rh);
+    float pulse = 0.75 + sin(seed.x*12.566 + uTime*0.7 + seed.z*3.0)*0.25;
+    col *= pulse;
+    col *= 1.0 + proximity*0.6;
 
     vColor = col;
     vAlpha = (0.8 + seed.y*0.2) * (1.0 + proximity*0.6) * uOpacity;
@@ -256,12 +193,12 @@ const ringVertex = /* glsl */ `
   }
 `;
 
-// ====== Geometry builders (exact seeding) ======
+// ====== Geometry builders ======
 
 function buildSphereGeometry(): THREE.BufferGeometry {
-  const e = new Float32Array(SPHERE_COUNT * 3); // position
-  const t = new Float32Array(SPHERE_COUNT * 3); // aStartPos
-  const n = new Float32Array(SPHERE_COUNT * 3); // seed
+  const e = new Float32Array(SPHERE_COUNT * 3);
+  const t = new Float32Array(SPHERE_COUNT * 3);
+  const n = new Float32Array(SPHERE_COUNT * 3);
   for (let r = 0; r < SPHERE_COUNT; r++) {
     const i = r * 3;
     const a = Math.random();
@@ -316,8 +253,6 @@ function buildRingGeometry(): THREE.BufferGeometry {
   return geo;
 }
 
-// ====== React ======
-
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -347,7 +282,6 @@ function baseUniforms() {
 }
 
 function BorealisField() {
-  // Load YOUR custom logo
   const logoAsset = useGLTF('/qqlogo.glb');
   const logoRef = useRef<THREE.Group>(null);
 
@@ -368,14 +302,13 @@ function BorealisField() {
   const intro = useRef(0);
   const mouse = useRef(new THREE.Vector3(999, 999, 999));
   const influence = useRef(0);
-  const smoothBeat = useRef(0);   // weighty, eased section beat
-  const smoothNorm = useRef(0);   // eased 0..1 colour progress
+  const smoothBeat = useRef(0);   
+  const smoothNorm = useRef(0);   
 
   useFrame((state, delta) => {
     const sm = sphereMat.current;
     const rm = ringMat.current;
     
-    // ENFORCING LOGO IS 100% FIXED
     if (logoRef.current) {
       logoRef.current.rotation.set(0, 0, 0); 
     }
@@ -383,11 +316,8 @@ function BorealisField() {
     if (!sm || !rm) return;
 
     const t = reduced ? 0 : state.clock.elapsedTime;
-
-    // Intro rush-in (2.6s cubic-out).
     intro.current = Math.min(1, intro.current + delta / INTRO_DURATION);
 
-    // Mouse crater: project pointer onto z=0 plane at the sphere scale.
     const targetX = pointer.x * 2.4;
     const targetY = pointer.y * 2.4;
     mouse.current.x = THREE.MathUtils.lerp(mouse.current.x === 999 ? targetX : mouse.current.x, targetX, 0.32);
@@ -395,8 +325,6 @@ function BorealisField() {
     mouse.current.z = 0;
     influence.current = THREE.MathUtils.lerp(influence.current, 1, 0.12);
 
-    // Weighty, eased section beat — integer when a section is snapped to
-    // the top. Smoothing makes the motion feel heavy and settle, not 1:1.
     smoothBeat.current = THREE.MathUtils.lerp(smoothBeat.current, beat.current, 0.10);
     const sb = smoothBeat.current;
     const sections = Math.max(2, count.current);
@@ -407,11 +335,6 @@ function BorealisField() {
     const heat  = THREE.MathUtils.smoothstep(sb, 0.12, 1.0) * 0.98;
     const tint  = sn * 4;
     const extra = sn * Math.PI * 0.35;
-
-    // Ring flip — a single, smooth, monotonic half-turn (π) per section,
-    // driven straight from the already-eased section beat. One source of
-    // smoothing (no second lerp, no tall-section freeze/stair-step), so the
-    // ring tracks the scroll fluidly and lands face-on at every snap.
     const flip = sb * RING_TURN_PER_SECTION;
 
     for (const u of [sm.uniforms, rm.uniforms]) {
@@ -428,17 +351,14 @@ function BorealisField() {
 
   return (
     <>
-      {/* Lights ONLY affect the logo (shaders ignore scene lighting) */}
       <ambientLight intensity={2.0} />
-      <directionalLight position={[10, 10, 5]} intensity={3.0} color="#5eeaff" />
-      <directionalLight position={[-10, -10, -5]} intensity={1.5} color="#ff00aa" />
+      <directionalLight position={[10, 10, 5]} intensity={3.0} color="#25e5ff" />
+      <directionalLight position={[-10, -10, -5]} intensity={1.5} color="#9e1eff" />
 
-      {/* Your Custom Centered Logo - Completely locked at SCALE 5.5 */}
       <group ref={logoRef} position={[0, 0, 0]}>
-        <primitive object={logoAsset.scene} scale={4.7} />
+        <primitive object={logoAsset.scene} scale={4.8} />
       </group>
 
-      {/* The EXACT Original Borealis Sphere & Ring Shaders */}
       <points ref={sphere} geometry={sphereGeo}>
         <shaderMaterial
           ref={sphereMat}
@@ -469,12 +389,6 @@ function BorealisField() {
 
 type RingProps = { active?: boolean };
 
-/**
- * `active` controls the render loop. On non-home pages the sphere sits
- * behind a frosted overlay, so we freeze the loop (`frameloop="never"`)
- * — no per-frame GPU work — which removes the lag on those pages. On
- * mobile we also drop the resolution further.
- */
 export function ParticleRing({ active = true }: RingProps) {
   const mobile = IS_MOBILE;
   return (
@@ -498,5 +412,4 @@ export function ParticleRing({ active = true }: RingProps) {
   );
 }
 
-// Preload your custom logo
 useGLTF.preload('/qqlogo.glb');
