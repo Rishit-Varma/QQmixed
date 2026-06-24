@@ -435,7 +435,7 @@ function BorealisField() {
 
       {/* Your Custom Centered Logo - Completely locked at SCALE 5.5 */}
       <group ref={logoRef} position={[0, 0, 0]}>
-        <primitive object={logoAsset.scene} scale={4.5} />
+        <primitive object={logoAsset.scene} scale={4.7} />
       </group>
 
       {/* The EXACT Original Borealis Sphere & Ring Shaders */}
