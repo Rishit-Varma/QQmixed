@@ -1,0 +1,6 @@
+[submodule "qqmixed"]
+    path = qqmixed
+    url = https://github.com/shhivvanshchoudhary/quantum-qubit-2025.git
+
+
+Add .gitmodules configuration
