@@ -15,17 +15,33 @@ type Props = {
  */
 export function Nav({ currentPage, onNavigate }: Props) {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   // Auto-close drawer on page change.
   useEffect(() => { setOpen(false); }, [currentPage]);
 
+  // Detect scroll to toggle the frosted glass background
+  useEffect(() => {
+    const handleScroll = () => {
+      // 50px threshold: blur activates after scrolling down slightly
+      setScrolled(window.scrollY > 50); 
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initialize on component mount
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   return (
     <>
       <motion.nav
         initial={{ opacity: 0, y: -4 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1], delay: 0.05 }}
-        className="fixed top-0 inset-x-0 z-40 bg-black/30 backdrop-blur-md border-b border-white/5"
+        className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ${
+          scrolled 
+            ? 'bg-black/40 backdrop-blur-md border-b border-white/5' 
+            : 'bg-transparent border-b border-transparent'
+        }`}
       >
         <div className="mx-auto max-w-6xl px-6 md:px-10 py-4 md:py-5 flex items-center justify-between gap-6">
           <button
