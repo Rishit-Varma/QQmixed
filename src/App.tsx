@@ -51,13 +51,11 @@ export function App() {
           sphere freezes (no render loop) on non-home pages to kill lag. */}
       {!loading && <ParticleRing active={page === 'home'} />}
 
-      {/* Solid dim layer on every page except home — no backdrop-filter,
-          so zero GPU cost. The frozen sphere stays a faint texture behind
-          and text reads cleanly. This is what kills the off-home lag. */}
-      {page !== 'home' && (
-        <div aria-hidden className="fixed inset-0 -z-[5] bg-[color:var(--color-bg)]/94" />
+      {/* ADD THIS: Blurred overlay for the homepage background */}
+      {page === 'home' && (
+        <div aria-hidden className="fixed inset-0 -z-[5] backdrop-blur-[4px] pointer-events-none" />
       )}
-
+      
       <Nav currentPage={page} onNavigate={navigate} />
 
       <AnimatePresence mode="wait">
