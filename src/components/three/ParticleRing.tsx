@@ -356,7 +356,7 @@ function BorealisField() {
       <directionalLight position={[-10, -10, -5]} intensity={1.5} color="#0d3df2" />
 
       <group ref={logoRef} position={[0, 0, 0]}>
-        <primitive object={logoAsset.scene} scale={5.5} />
+        <primitive object={logoAsset.scene} scale={4.8} />
       </group>
 
       <points ref={sphere} geometry={sphereGeo}>
