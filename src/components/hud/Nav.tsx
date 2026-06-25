@@ -25,9 +25,9 @@ export function Nav({ currentPage, onNavigate }: Props) {
         initial={{ opacity: 0, y: -4 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1], delay: 0.05 }}
-        className="fixed top-0 inset-x-0 z-40"
+        className="fixed top-0 inset-x-0 z-40 bg-black/30 backdrop-blur-md border-b border-white/5"
       >
-        <div className="mx-auto max-w-6xl px-6 md:px-10 pt-5 md:pt-6 flex items-center justify-between gap-6">
+        <div className="mx-auto max-w-6xl px-6 md:px-10 py-4 md:py-5 flex items-center justify-between gap-6">
           <button
             onClick={() => onNavigate('home')}
             className="flex items-center gap-3 group"
