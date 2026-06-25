@@ -49,9 +49,6 @@ html {
 }
 body, #root { background: transparent; color: var(--color-ink); }
 
-/* Each tagged section is a snap point at its top. */
-[data-snap-section] { scroll-snap-align: start; }
-
 /* Respect reduced-motion: no snap, no smooth jumps. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-snap-type: none; scroll-behavior: auto; }
