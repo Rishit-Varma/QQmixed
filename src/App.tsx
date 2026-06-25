@@ -50,11 +50,6 @@ export function App() {
           WebGL canvas and the sphere's never contend for a context. The
           sphere freezes (no render loop) on non-home pages to kill lag. */}
       {!loading && <ParticleRing active={page === 'home'} />}
-
-      {/* ADD THIS: Blurred overlay for the homepage background */}
-      {page === 'home' && (
-        <div aria-hidden className="fixed inset-0 -z-[5] backdrop-blur-[4px] pointer-events-none" />
-      )}
       
       <Nav currentPage={page} onNavigate={navigate} />
 
