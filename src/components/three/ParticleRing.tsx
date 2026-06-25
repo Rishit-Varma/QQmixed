@@ -6,7 +6,7 @@ import { useSectionBeat } from '../../hooks/useSectionBeat';
 
 /**
  * Aurora particle sphere + torus ring.
- * Restricted purely to a high-fidelity Cyan and Violet color cycle.
+ * Restricted purely to a high-fidelity Cyan and Dark Blue color cycle.
  */
 
 const IS_MOBILE = typeof window !== 'undefined' && window.innerWidth < 768;
@@ -22,7 +22,7 @@ const RING_MINOR   = 0.075;
 const INTRO_DURATION = 2.6;
 const RING_TURN_PER_SECTION = Math.PI;
 
-// ====== Shaders updated for Cyan + Violet only ======
+// ====== Shaders updated for Cyan + Dark Blue only ======
 
 const sphereVertex = /* glsl */ `
   attribute vec3 seed;
@@ -44,10 +44,10 @@ const sphereVertex = /* glsl */ `
   vec3 rotateY(vec3 p, float a){ float c=cos(a), s=sin(a); return vec3(c*p.x+s*p.z, p.y, -s*p.x+c*p.z); }
   vec3 rotateX(vec3 p, float a){ float c=cos(a), s=sin(a); return vec3(p.x, c*p.y-s*p.z, s*p.y+c*p.z); }
 
-  // EXACT SHADER COLOR TARGETS
+  // SHADER COLOR TARGETS (Cyan to Dark Blue)
   const vec3 AURORA_CYAN  = vec3(0.25, 0.85, 1.00);
-  const vec3 AURORA_VIOLET = vec3(0.62, 0.12, 0.94);
-  const vec3 SPACE_INDIGO = vec3(0.08, 0.05, 0.45);
+  const vec3 DARK_BLUE    = vec3(0.02, 0.12, 0.55);
+  const vec3 DEEP_INDIGO  = vec3(0.01, 0.04, 0.25);
 
   void main(){
     float introEase = 1.0 - pow(1.0 - clamp(uIntroT,0.0,1.0), 3.0);
@@ -82,16 +82,16 @@ const sphereVertex = /* glsl */ `
     mixFactor += (seed.x - 0.5) * 0.15;
     mixFactor = clamp(mixFactor, 0.0, 1.0);
 
-    // Dynamic Cyan to Violet wave
-    vec3 col = mix(AURORA_CYAN, AURORA_VIOLET, mixFactor);
+    // Dynamic Cyan to Dark Blue wave configuration
+    vec3 col = mix(AURORA_CYAN, DARK_BLUE, mixFactor);
     
-    // Core contrast deep tone
+    // Core structural shadow using deep indigo highlights
     float highlightBoost = 1.0 - abs(mixFactor - 0.5)*2.0;
-    col = mix(col, SPACE_INDIGO, highlightBoost*0.20);
+    col = mix(col, DEEP_INDIGO, highlightBoost*0.25);
     
     float curtain = sin(pos.y*0.9 + uTime*0.6 + seed.y*6.28)*0.5 + 0.5;
     col *= 0.55 + curtain*0.85;
-    col = mix(col, vec3(0.90,0.95,1.00), max(shellGlow,0.0)*0.60);
+    col = mix(col, vec3(0.85,0.95,1.00), max(shellGlow,0.0)*0.60);
 
     vColor = col;
 
@@ -142,8 +142,8 @@ const ringVertex = /* glsl */ `
   varying float vAlpha;
 
   const vec3 RING_CYAN   = vec3(0.35, 0.85, 1.00);
-  const vec3 RING_VIOLET = vec3(0.65, 0.15, 0.95);
-  const vec3 RING_WHITE  = vec3(0.95, 0.98, 1.00);
+  const vec3 RING_BLUE   = vec3(0.05, 0.20, 0.75);
+  const vec3 RING_GLOW   = vec3(0.75, 0.93, 1.00);
 
   vec3 rotateY(vec3 p, float a){ float c=cos(a),s=sin(a); return vec3(c*p.x+s*p.z, p.y, -s*p.x+c*p.z); }
   vec3 rotateX(vec3 p, float a){ float c=cos(a),s=sin(a); return vec3(p.x, c*p.y-s*p.z, s*p.y+c*p.z); }
@@ -167,13 +167,13 @@ const ringVertex = /* glsl */ `
     pos += outFromCenter * proximity * 0.18;
     pos.z += proximity * 0.06;
 
-    // Fluid blending between Cyan and Violet down the chain
+    // Linear space translation across Cyan and Dark Blue paths
     float gradient = sin(seed.x * 6.28318 + uTime * 0.5) * 0.5 + 0.5;
-    vec3 col = mix(RING_CYAN, RING_VIOLET, gradient);
+    vec3 col = mix(RING_CYAN, RING_BLUE, gradient);
     
-    // Highlight intersection segments with bright white nodes
+    // Inject luminous bright cyan edge tones at structural peaks
     float midAcc = 1.0 - abs(gradient - 0.5) * 2.0;
-    col = mix(col, RING_WHITE, midAcc * 0.25);
+    col = mix(col, RING_GLOW, midAcc * 0.25);
 
     float pulse = 0.75 + sin(seed.x*12.566 + uTime*0.7 + seed.z*3.0)*0.25;
     col *= pulse;
@@ -353,10 +353,10 @@ function BorealisField() {
     <>
       <ambientLight intensity={2.0} />
       <directionalLight position={[10, 10, 5]} intensity={3.0} color="#25e5ff" />
-      <directionalLight position={[-10, -10, -5]} intensity={1.5} color="#9e1eff" />
+      <directionalLight position={[-10, -10, -5]} intensity={1.5} color="#0d3df2" />
 
       <group ref={logoRef} position={[0, 0, 0]}>
-        <primitive object={logoAsset.scene} scale={4.8} />
+        <primitive object={logoAsset.scene} scale={5.5} />
       </group>
 
       <points ref={sphere} geometry={sphereGeo}>
