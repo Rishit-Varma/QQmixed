@@ -291,7 +291,7 @@ function BorealisField() {
   const ringMat = useRef<THREE.ShaderMaterial>(null);
   const reduced = usePrefersReducedMotion();
   const { beat, count } = useSectionBeat();
-  const { pointer } = useThree();
+  const { pointer, viewport } = useThree();
 
   const sphereGeo = useMemo(buildSphereGeometry, []);
   const ringGeo = useMemo(buildRingGeometry, []);
@@ -337,7 +337,7 @@ function BorealisField() {
     const extra = sn * Math.PI * 0.35;
     const flip = sb * RING_TURN_PER_SECTION;
 
-    for (const u of [sm.uniforms, rm.uniforms]) {
+   for (const u of [sm.uniforms, rm.uniforms]) {
       u.uTime.value = t;
       u.uIntroT.value = intro.current;
       u.uMouse.value.copy(mouse.current);
@@ -349,40 +349,44 @@ function BorealisField() {
     rm.uniforms.uRingFlip.value = flip;
   });
 
+  const responsiveScale = Math.min(1, viewport.width / 6.5);
+
   return (
     <>
       <ambientLight intensity={2.0} />
       <directionalLight position={[10, 10, 5]} intensity={3.0} color="#25e5ff" />
       <directionalLight position={[-10, -10, -5]} intensity={1.5} color="#0d3df2" />
 
-      <group ref={logoRef} position={[0, 0, 0]}>
-        <primitive object={logoAsset.scene} scale={4.8} />
-      </group>
+      <group scale={responsiveScale}>
+        <group ref={logoRef} position={[0, 0, 0]}>
+          <primitive object={logoAsset.scene} scale={4.8} />
+        </group>
 
-      <points ref={sphere} geometry={sphereGeo}>
-        <shaderMaterial
-          ref={sphereMat}
-          uniforms={sphereUniforms}
-          vertexShader={sphereVertex}
-          fragmentShader={sharedFragment}
-          transparent
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          toneMapped={false}
-        />
-      </points>
-      <points ref={ring} geometry={ringGeo}>
-        <shaderMaterial
-          ref={ringMat}
-          uniforms={ringUniforms}
-          vertexShader={ringVertex}
-          fragmentShader={sharedFragment}
-          transparent
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          toneMapped={false}
-        />
-      </points>
+        <points ref={sphere} geometry={sphereGeo}>
+          <shaderMaterial
+            ref={sphereMat}
+            uniforms={sphereUniforms}
+            vertexShader={sphereVertex}
+            fragmentShader={sharedFragment}
+            transparent
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            toneMapped={false}
+          />
+        </points>
+        <points ref={ring} geometry={ringGeo}>
+          <shaderMaterial
+            ref={ringMat}
+            uniforms={ringUniforms}
+            vertexShader={ringVertex}
+            fragmentShader={sharedFragment}
+            transparent
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            toneMapped={false}
+          />
+        </points>
+      </group>
     </>
   );
 }
